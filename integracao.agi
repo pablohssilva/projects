@@ -1,0 +1,46 @@
+#!/usr/bin/php -q
+<?php
+    //Aqui eu chamo as bibliotecas
+    require 'phpagi.php';
+
+    class postgresSql{
+        private static $connection;
+    
+        public function __construct(){}
+    
+        public static function conn() {
+            $pdoConfig  = "host=localhost port=5432 dbname=asterisk user=postgres password=OJFIUWEHJFUIWRHG";
+            try {
+                if(!isset($connection)){
+                    $connection =  pg_connect($pdoConfig);
+                }
+                return $connection;
+            } catch (PDOException $e) {
+                throw new Exception($e);
+            }
+        }
+    }
+    //Aqui eu instancio os objetos
+    $Obj_Conexao = new postgresSql();
+    $conn = $Obj_Conexao->conn();
+
+    $funcao = $argv[1];
+    $telefone = $argv[2];
+    $idcall = $argv[3];
+    $authorized = 0;
+
+    /* Aqui faz o controle das funcoes */
+    switch ($funcao) {
+        case 'gerarProtocolo':
+            $sql = "insert into hydra_relatorio_controle_ligacao (protocolo, ligacao, telefone) values ('{$idcall}', '{$telefone}')returning protocolo";
+            $query = pg_query($conn, $sql);
+            if(!$query){
+                echo json_encode("Erro ao gerar protocolo!");
+            }
+            $array = pg_fetch_all($query);
+            $retorno = $array[0]["protocolo"];
+            return $retorno;
+            break;
+    }
+    exit();    
+?>
